@@ -209,3 +209,27 @@ button:active {
 .hidden {
     display: none;
 }
+
+/* Responsive layout for phones and small tablets */
+@media (max-width: 480px) {
+    body {
+        overflow-y: auto;
+        padding: 24px 16px;
+        height: auto;
+        min-height: 100vh;
+    }
+
+    .login-box {
+        width: 100%;
+        max-width: 400px;
+        padding: 32px 24px;
+    }
+
+    .logo {
+        font-size: 44px;
+    }
+
+    h1 {
+        font-size: 22px;
+    }
+}

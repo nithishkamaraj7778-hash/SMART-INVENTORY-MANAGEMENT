@@ -92,22 +92,18 @@ async function buildDashboardPayload() {
   };
 }
 
-exports.getDashboardData = async (req, res) => {
+async function sendDashboardResponse(res) {
   try {
     const payload = await buildDashboardPayload();
     res.json(payload);
   } catch (err) {
-    console.error('Error fetching dashboard statistics:', err);
-    res.status(500).json({ message: 'Error loading dashboard telemetry data' });
+    console.error('Error fetching dashboard data:', err);
+    res.status(500).json({ message: 'Error loading dashboard data' });
   }
-};
+}
 
-exports.getDashboardStats = async (req, res) => {
-  try {
-    const payload = await buildDashboardPayload();
-    res.json(payload);
-  } catch (err) {
-    console.error('Error fetching dashboard stats:', err);
-    res.status(500).json({ message: 'Error loading dashboard stats' });
-  }
-};
+/** Legacy route alias — frontend uses /dashboard/stats */
+exports.getDashboardData = (req, res) => sendDashboardResponse(res);
+
+/** Primary dashboard endpoint used by the frontend */
+exports.getDashboardStats = (req, res) => sendDashboardResponse(res);

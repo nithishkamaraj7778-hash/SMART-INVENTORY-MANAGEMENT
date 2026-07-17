@@ -10,36 +10,36 @@ const predictionController = require('../controllers/predictionController');
 const billingRoutes = require('./billingRoutes');
 const salesRoutes = require('./salesRoutes');
 
-// Auth
+// ── Authentication ──────────────────────────────────────────────────────────
 router.post('/login', authController.login);
 router.post('/register', authController.register);
 
-// Dashboard
+// ── Dashboard ───────────────────────────────────────────────────────────────
 router.get('/dashboard', dashboardController.getDashboardData);
 router.get('/dashboard/stats', dashboardController.getDashboardStats);
 
-// Categories CRUD
+// ── Categories ──────────────────────────────────────────────────────────────
 router.get('/categories', categoryController.getCategories);
 router.post('/categories', categoryController.createCategory);
 router.put('/categories/:id', categoryController.updateCategory);
 router.delete('/categories/:id', categoryController.deleteCategory);
 
-// Products CRUD
+// ── Products ────────────────────────────────────────────────────────────────
 router.get('/products', productController.getProducts);
 router.post('/products', productController.createProduct);
 router.put('/products/:id', productController.updateProduct);
 router.delete('/products/:id', productController.deleteProduct);
 
-// Suppliers CRUD
+// ── Suppliers ───────────────────────────────────────────────────────────────
 router.get('/suppliers', supplierController.getSuppliers);
 router.post('/suppliers', supplierController.createSupplier);
 router.put('/suppliers/:id', supplierController.updateSupplier);
 router.delete('/suppliers/:id', supplierController.deleteSupplier);
 
-// Prediction
+// ── Predictive Restocking ───────────────────────────────────────────────────
 router.get('/prediction', predictionController.getPredictions);
 
-// Billing and sales
+// ── Billing & Sales ───────────────────────────────────────────────────────────
 router.use('/billing', billingRoutes);
 router.use('/sales', salesRoutes);
 

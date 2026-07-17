@@ -1,8 +1,16 @@
 const db = require('../database/db');
 
+/** Build a date filter compatible with both MySQL and SQLite. */
+function getLast30DaysFilter() {
+  return db.getDbType() === 'mysql'
+    ? 's.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
+    : "s.created_at >= datetime('now', '-30 days')";
+}
+
 exports.getPredictions = async (req, res) => {
   try {
     const products = await db.query('SELECT * FROM product ORDER BY name ASC');
+    const dateFilter = getLast30DaysFilter();
 
     const predictions = await Promise.all(products.map(async (prod) => {
       const quantity = parseInt(prod.quantity, 10);
@@ -13,7 +21,7 @@ exports.getPredictions = async (req, res) => {
         `SELECT COALESCE(SUM(si.quantity), 0) as sold_units
          FROM sale_items si
          INNER JOIN sales s ON s.id = si.sale_id
-         WHERE si.product_id = ? AND s.created_at >= datetime('now', '-30 days')`,
+         WHERE si.product_id = ? AND ${dateFilter}`,
         [prod.id]
       );
 

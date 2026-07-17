@@ -1,11 +1,23 @@
 {
-  "name": "smart-inventory-management",
+  "name": "restock-management",
   "version": "1.0.0",
-  "description": "Smart Inventory Management with Predictive Restocking",
+  "description": "Full-stack inventory management with predictive restocking, billing/POS, and sales analytics",
   "main": "server.js",
   "scripts": {
     "start": "node server.js",
     "dev": "node server.js"
+  },
+  "keywords": [
+    "inventory",
+    "restock",
+    "pos",
+    "billing",
+    "predictive-analytics",
+    "express",
+    "nodejs"
+  ],
+  "engines": {
+    "node": ">=18.0.0"
   },
   "dependencies": {
     "cors": "^2.8.5",
@@ -15,6 +27,6 @@
     "pdfkit": "^0.13.0",
     "sqlite3": "^5.1.6"
   },
-  "author": "Antigravity",
+  "author": "",
   "license": "ISC"
 }

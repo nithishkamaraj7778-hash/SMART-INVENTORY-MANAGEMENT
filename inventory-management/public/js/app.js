@@ -9,14 +9,51 @@ if (!window.location.pathname.includes('login.html')) {
   }
 }
 
-// 2. Real-Time DateTime Widget
+// 2. Real-Time DateTime Widget & Mobile Sidebar
 document.addEventListener('DOMContentLoaded', () => {
   const dateTimeEl = document.getElementById('currentDateTime');
   if (dateTimeEl) {
     updateClock();
     setInterval(updateClock, 1000);
   }
+
+  initMobileSidebar();
 });
+
+/** Inject hamburger toggle and overlay for small-screen navigation */
+function initMobileSidebar() {
+  const sidebar = document.querySelector('.sidebar');
+  if (!sidebar) return;
+
+  const menuBtn = document.createElement('button');
+  menuBtn.className = 'mobile-menu-btn';
+  menuBtn.setAttribute('aria-label', 'Toggle navigation menu');
+  menuBtn.innerHTML = '<i class="fa-solid fa-bars"></i>';
+
+  const overlay = document.createElement('div');
+  overlay.className = 'sidebar-overlay';
+
+  document.body.appendChild(menuBtn);
+  document.body.appendChild(overlay);
+
+  function closeSidebar() {
+    sidebar.classList.remove('open');
+    overlay.classList.remove('active');
+  }
+
+  menuBtn.addEventListener('click', () => {
+    sidebar.classList.toggle('open');
+    overlay.classList.toggle('active');
+  });
+
+  overlay.addEventListener('click', closeSidebar);
+
+  sidebar.querySelectorAll('.sidebar-menu li, .sidebar-footer li').forEach((item) => {
+    item.addEventListener('click', () => {
+      if (window.innerWidth <= 768) closeSidebar();
+    });
+  });
+}
 
 function updateClock() {
   const dateTimeEl = document.getElementById('currentDateTime');
