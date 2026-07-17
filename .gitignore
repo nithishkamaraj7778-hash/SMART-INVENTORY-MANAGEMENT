@@ -1,0 +1,33 @@
+# Dependencies
+node_modules/
+inventory-management/node_modules/
+
+# Local development tooling (portable Node / Python — not part of the app)
+node-bin/
+venv/
+
+# Environment variables and secrets
+.env
+.env.local
+.env.*.local
+
+# Runtime database files (schema is created automatically in database/db.js)
+inventory-management/database/*.db
+
+# OS metadata
+.DS_Store
+Thumbs.db
+
+# Editor / IDE (optional local settings)
+.vscode/
+
+# Logs and debug output
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Build artifacts
+dist/
+build/
+coverage/
