@@ -1,0 +1,121 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Inventory Status - Restock Management</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <h2>Restock Management</h2>
+      </div>
+      <ul class="sidebar-menu">
+        <li onclick="openAppPage('dashboard.html')">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </li>
+        <li onclick="openAppPage('category.html')">
+          <i class="fa-solid fa-tags"></i>
+          <span>Categories</span>
+        </li>
+        <li onclick="openAppPage('product.html')">
+          <i class="fa-solid fa-box-open"></i>
+          <span>Products</span>
+        </li>
+        <li onclick="openAppPage('supplier.html')">
+          <i class="fa-solid fa-truck-field"></i>
+          <span>Suppliers</span>
+        </li>
+        <li class="active" onclick="openAppPage('inventory.html')">
+          <i class="fa-solid fa-warehouse"></i>
+          <span>Inventory Status</span>
+        </li>
+        <li onclick="openAppPage('prediction.html')">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>Predictive Stock</span>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <li onclick="logout()" style="list-style: none;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </li>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h1>Inventory Status</h1>
+          <p>Complete ledger of current stock levels compared against safety thresholds</p>
+        </div>
+        <div class="page-header-actions">
+          <div class="datetime-widget" id="dateTimeWidget">
+            <i class="fa-regular fa-clock"></i>
+            <span id="currentDateTime">Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Filters Bar -->
+      <div class="search-filter-bar">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-control" placeholder="Search inventory by name, category, or supplier..." onkeyup="filterInventory()">
+        </div>
+        <div class="filter-wrapper">
+          <label for="statusFilter" class="form-label" style="margin-bottom: 0;">Stock Status:</label>
+          <select id="statusFilter" class="select-control" onchange="filterInventory()">
+            <option value="">All Levels</option>
+            <option value="available">Available (Sufficient)</option>
+            <option value="low">Low Stock</option>
+            <option value="out">Out of Stock</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Inventory Table -->
+      <div class="widget">
+        <div class="table-responsive">
+          <table class="custom-table" id="inventoryTable">
+            <thead>
+              <tr>
+                <th style="width: 70px;">ID</th>
+                <th>Product Name</th>
+                <th>Category</th>
+                <th>Supplier</th>
+                <th>Unit Price</th>
+                <th>Current Stock</th>
+                <th>Minimum Stock Limit</th>
+                <th style="width: 200px;">Stock Status</th>
+              </tr>
+            </thead>
+            <tbody id="inventoryTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-muted);">Loading inventory metrics...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast & Loader Overlay -->
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/inventory.js"></script>
+</body>
+</html>

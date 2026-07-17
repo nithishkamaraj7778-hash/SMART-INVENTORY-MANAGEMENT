@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Dashboard - Restock Management</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <!-- Chart.js CDN -->
+  <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <h2>Restock Management</h2>
+      </div>
+      <ul class="sidebar-menu">
+        <li class="active" onclick="openAppPage('dashboard.html')">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </li>
+        <li onclick="openAppPage('category.html')">
+          <i class="fa-solid fa-tags"></i>
+          <span>Categories</span>
+        </li>
+        <li onclick="openAppPage('product.html')">
+          <i class="fa-solid fa-box-open"></i>
+          <span>Products</span>
+        </li>
+        <li onclick="openAppPage('supplier.html')">
+          <i class="fa-solid fa-truck-field"></i>
+          <span>Suppliers</span>
+        </li>
+        <li onclick="openAppPage('inventory.html')">
+          <i class="fa-solid fa-warehouse"></i>
+          <span>Inventory Status</span>
+        </li>
+        <li onclick="openAppPage('prediction.html')">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>Predictive Stock</span>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <li onclick="logout()" style="list-style: none;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </li>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h1>Welcome Admin 👋</h1>
+          <p>Real-time metrics and restocking predictions overview</p>
+        </div>
+        <div class="page-header-actions">
+          <div class="datetime-widget" id="dateTimeWidget">
+            <i class="fa-regular fa-clock"></i>
+            <span id="currentDateTime">Loading Date & Time...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Stats Metric Cards -->
+      <div class="stats-grid">
+        <div class="stat-card" data-page="product.html" tabindex="0" role="button" aria-label="Open products page">
+          <div class="stat-card-info">
+            <h3>Total Products</h3>
+            <p id="totalProducts">0</p>
+          </div>
+          <div class="stat-card-icon blue">
+            <i class="fa-solid fa-box"></i>
+          </div>
+        </div>
+        <div class="stat-card" data-page="category.html" tabindex="0" role="button" aria-label="Open categories page">
+          <div class="stat-card-info">
+            <h3>Categories</h3>
+            <p id="totalCategories">0</p>
+          </div>
+          <div class="stat-card-icon cyan">
+            <i class="fa-solid fa-tags"></i>
+          </div>
+        </div>
+        <div class="stat-card" data-page="supplier.html" tabindex="0" role="button" aria-label="Open suppliers page">
+          <div class="stat-card-info">
+            <h3>Suppliers</h3>
+            <p id="totalSuppliers">0</p>
+          </div>
+          <div class="stat-card-icon blue">
+            <i class="fa-solid fa-truck-field"></i>
+          </div>
+        </div>
+        <div class="stat-card" data-page="inventory.html" tabindex="0" role="button" aria-label="Open inventory status page">
+          <div class="stat-card-info">
+            <h3>Low Stock Items</h3>
+            <p id="totalLowStock">0</p>
+          </div>
+          <div class="stat-card-icon red">
+            <i class="fa-solid fa-triangle-exclamation"></i>
+          </div>
+        </div>
+        <div class="stat-card" data-page="sales.html" tabindex="0" role="button" aria-label="Open sales history">
+          <div class="stat-card-info">
+            <h3>Today's Sales</h3>
+            <p id="todaySalesCount">0</p>
+          </div>
+          <div class="stat-card-icon orange">
+            <i class="fa-solid fa-receipt"></i>
+          </div>
+        </div>
+        <div class="stat-card" data-page="sales.html" tabindex="0" role="button" aria-label="Open sales history">
+          <div class="stat-card-info">
+            <h3>Today's Revenue</h3>
+            <p id="todayRevenue">0.00</p>
+          </div>
+          <div class="stat-card-icon cyan">
+            <i class="fa-solid fa-indian-rupee-sign"></i>
+          </div>
+        </div>
+        <div class="stat-card" data-page="sales.html" tabindex="0" role="button" aria-label="Open sales history">
+          <div class="stat-card-info">
+            <h3>Products Sold Today</h3>
+            <p id="productsSoldToday">0</p>
+          </div>
+          <div class="stat-card-icon blue">
+            <i class="fa-solid fa-cart-shopping"></i>
+          </div>
+        </div>
+      </div>
+
+      <div class="widget">
+        <div class="widget-header">
+          <h2><i class="fa-solid fa-clock-rotate-left"></i> Latest Bills</h2>
+        </div>
+        <div class="table-responsive">
+          <table class="custom-table">
+            <thead>
+              <tr>
+                <th>Invoice</th>
+                <th>Customer</th>
+                <th>Amount</th>
+                <th>Time</th>
+              </tr>
+            </thead>
+            <tbody id="latestBillsTable">
+              <tr><td colspan="4" style="text-align:center;color:var(--text-muted);">Loading latest bills...</td></tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <!-- Dashboard Layout Grid -->
+      <div class="dashboard-grid">
+        <!-- Charting & Data Section -->
+        <div>
+          <!-- Chart Row -->
+          <div class="charts-grid">
+            <div class="widget">
+              <div class="widget-header">
+                <h2><i class="fa-solid fa-chart-bar"></i> Product Stock Levels</h2>
+              </div>
+              <div class="chart-container">
+                <canvas id="stockBarChart"></canvas>
+              </div>
+            </div>
+            <div class="widget">
+              <div class="widget-header">
+                <h2><i class="fa-solid fa-chart-pie"></i> Category Distribution</h2>
+              </div>
+              <div class="chart-container">
+                <canvas id="categoryPieChart"></canvas>
+              </div>
+            </div>
+          </div>
+
+          <!-- Low Stock Table Widget -->
+          <div class="widget">
+            <div class="widget-header">
+              <h2><i class="fa-solid fa-triangle-exclamation"></i> Critical Low Stock Alerts</h2>
+            </div>
+            <div class="table-responsive">
+              <table class="custom-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    <th>Current Stock</th>
+                    <th>Minimum Stock</th>
+                    <th>Status</th>
+                  </tr>
+                </thead>
+                <tbody id="stockTable">
+                  <tr>
+                    <td colspan="4" style="text-align: center; color: var(--text-muted);">Loading low stock alerts...</td>
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </div>
+        </div>
+
+        <!-- Notifications Log Widget (Sidebar Right) -->
+        <div>
+          <div class="widget" style="height: calc(100% - 24px);">
+            <div class="widget-header">
+              <h2><i class="fa-solid fa-bell"></i> System Notifications</h2>
+            </div>
+            <div class="notifications-list" id="notificationsLog">
+              <div class="notification-item info">
+                <i class="fa-solid fa-info-circle notification-item-icon"></i>
+                <div>Initializing system logging...</div>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Loading overlay -->
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <!-- JavaScript application controllers -->
+  <script src="js/app.js"></script>
+  <script src="js/dashboard.js"></script>
+</body>
+</html>

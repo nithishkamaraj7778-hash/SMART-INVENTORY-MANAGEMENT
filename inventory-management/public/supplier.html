@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Supplier Management - Restock Management</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <h2>Restock Management</h2>
+      </div>
+      <ul class="sidebar-menu">
+        <li onclick="openAppPage('dashboard.html')">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </li>
+        <li onclick="openAppPage('category.html')">
+          <i class="fa-solid fa-tags"></i>
+          <span>Categories</span>
+        </li>
+        <li onclick="openAppPage('product.html')">
+          <i class="fa-solid fa-box-open"></i>
+          <span>Products</span>
+        </li>
+        <li class="active" onclick="openAppPage('supplier.html')">
+          <i class="fa-solid fa-truck-field"></i>
+          <span>Suppliers</span>
+        </li>
+        <li onclick="openAppPage('inventory.html')">
+          <i class="fa-solid fa-warehouse"></i>
+          <span>Inventory Status</span>
+        </li>
+        <li onclick="openAppPage('prediction.html')">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>Predictive Stock</span>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <li onclick="logout()" style="list-style: none;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </li>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h1>Supplier Management</h1>
+          <p>Register and coordinate wholesale supplier relationships and addresses</p>
+        </div>
+        <div class="page-header-actions">
+          <button class="btn btn-primary" onclick="openAddModal()">
+            <i class="fa-solid fa-plus"></i> Add Supplier
+          </button>
+        </div>
+      </div>
+
+      <!-- Search Bar -->
+      <div class="search-filter-bar">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-control" placeholder="Search suppliers by name, company, or email..." onkeyup="filterSuppliers()">
+        </div>
+      </div>
+
+      <!-- Suppliers Data Table -->
+      <div class="widget">
+        <div class="table-responsive">
+          <table class="custom-table" id="supplierTable">
+            <thead>
+              <tr>
+                <th style="width: 70px;">ID</th>
+                <th>Supplier Name</th>
+                <th>Company Name</th>
+                <th>Phone Number</th>
+                <th>Email Address</th>
+                <th>Office Address</th>
+                <th style="width: 120px; text-align: center;">Actions</th>
+              </tr>
+            </thead>
+            <tbody id="supplierTableBody">
+              <tr>
+                <td colspan="7" style="text-align: center; color: var(--text-muted);">Loading suppliers...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Supplier Form Popup Modal -->
+  <div class="modal-overlay" id="supplierModal">
+    <div class="modal-content" style="max-width: 520px;">
+      <div class="modal-header">
+        <h3 id="modalTitle">Add Supplier</h3>
+        <button class="modal-close-btn" onclick="closeModal()">&times;</button>
+      </div>
+      <form id="supplierForm" onsubmit="saveSupplier(event)">
+        <div class="modal-body">
+          <input type="hidden" id="supplierId">
+          
+          <div class="form-group form-group-full">
+            <label for="supplierName" class="form-label">Supplier Contact Name</label>
+            <input type="text" id="supplierName" class="form-control" placeholder="e.g. John Doe" required>
+          </div>
+          
+          <div class="form-group form-group-full">
+            <label for="supplierCompany" class="form-label">Company Name</label>
+            <input type="text" id="supplierCompany" class="form-control" placeholder="e.g. Dairy Fresh Corp" required>
+          </div>
+
+          <div class="form-grid">
+            <div class="form-group">
+              <label for="supplierPhone" class="form-label">Phone Number</label>
+              <input type="tel" id="supplierPhone" class="form-control" placeholder="e.g. 9876543210" required>
+            </div>
+            
+            <div class="form-group">
+              <label for="supplierEmail" class="form-label">Email Address</label>
+              <input type="email" id="supplierEmail" class="form-control" placeholder="e.g. contact@supplier.com" required>
+            </div>
+          </div>
+
+          <div class="form-group form-group-full">
+            <label for="supplierAddress" class="form-label">Full Office Address</label>
+            <textarea id="supplierAddress" class="form-control" placeholder="e.g. 123 Industrial Way, Sector 4" rows="3" required style="resize: vertical; font-family: inherit;"></textarea>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" onclick="closeModal()">Cancel</button>
+          <button type="submit" class="btn btn-primary" id="saveBtn">Save Supplier</button>
+        </div>
+      </form>
+    </div>
+  </div>
+
+  <!-- Toast and Loading indicator -->
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/supplier.js"></script>
+</body>
+</html>

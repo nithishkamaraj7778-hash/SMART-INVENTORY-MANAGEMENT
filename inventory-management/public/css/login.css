@@ -1,0 +1,211 @@
+/* ==========================================================================
+   RESTOCK MANAGEMENT - PREMIUM LOGIN PAGE STYLING (login.css)
+   ========================================================================== */
+
+@import url('https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap');
+
+* {
+    margin: 0;
+    padding: 0;
+    box-sizing: border-box;
+    font-family: 'Poppins', sans-serif;
+    -webkit-font-smoothing: antialiased;
+}
+
+body {
+    height: 100vh;
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    background-color: #05070c;
+    overflow: hidden;
+    position: relative;
+}
+
+/* Glowing background blobs */
+body::before {
+    content: "";
+    position: absolute;
+    width: 450px;
+    height: 450px;
+    background: radial-gradient(circle, rgba(99, 102, 241, 0.2) 0%, rgba(99, 102, 241, 0) 70%);
+    border-radius: 50%;
+    top: -100px;
+    left: -100px;
+    z-index: 1;
+}
+
+body::after {
+    content: "";
+    position: absolute;
+    width: 400px;
+    height: 400px;
+    background: radial-gradient(circle, rgba(139, 92, 246, 0.15) 0%, rgba(139, 92, 246, 0) 70%);
+    border-radius: 50%;
+    bottom: -100px;
+    right: -100px;
+    z-index: 1;
+}
+
+.login-box {
+    width: 400px;
+    padding: 45px 40px;
+    background: rgba(22, 30, 49, 0.45);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border: 1px solid rgba(255, 255, 255, 0.07);
+    border-radius: 24px;
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.35);
+    text-align: center;
+    color: white;
+    position: relative;
+    z-index: 10;
+    animation: fadeUp 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+@keyframes fadeUp {
+    from {
+        opacity: 0;
+        transform: translateY(30px);
+    }
+    to {
+        opacity: 1;
+        transform: translateY(0);
+    }
+}
+
+.logo {
+    font-size: 56px;
+    margin-bottom: 20px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    display: inline-block;
+    filter: drop-shadow(0 0 15px rgba(99, 102, 241, 0.35));
+}
+
+h1 {
+    font-size: 26px;
+    font-weight: 700;
+    margin-bottom: 6px;
+    letter-spacing: 0.5px;
+    background: linear-gradient(135deg, #ffffff, #cbd5e1);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+}
+
+p {
+    margin-bottom: 35px;
+    color: #94a3b8;
+    font-size: 14px;
+    font-weight: 400;
+}
+
+.input-box {
+    position: relative;
+    margin-bottom: 24px;
+}
+
+.input-box input {
+    width: 100%;
+    padding: 14px 20px 14px 48px;
+    background: rgba(255, 255, 255, 0.02);
+    border: 1px solid rgba(255, 255, 255, 0.08);
+    border-radius: 12px;
+    outline: none;
+    font-size: 14px;
+    color: white;
+    transition: all 0.3s ease;
+}
+
+.input-box input::placeholder {
+    color: #475569;
+}
+
+.input-box input:focus {
+    border-color: rgba(99, 102, 241, 0.5);
+    background: rgba(255, 255, 255, 0.04);
+    box-shadow: 0 0 15px rgba(99, 102, 241, 0.15);
+}
+
+.input-box i:first-child {
+    position: absolute;
+    left: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    color: #6366f1;
+    font-size: 16px;
+    transition: all 0.3s ease;
+}
+
+.input-box input:focus ~ i:first-child {
+    color: #8b5cf6;
+    text-shadow: 0 0 8px rgba(139, 92, 246, 0.4);
+}
+
+.toggle {
+    position: absolute;
+    right: 18px;
+    top: 50%;
+    transform: translateY(-50%);
+    cursor: pointer;
+    color: #475569;
+    font-size: 15px;
+    transition: all 0.3s ease;
+}
+
+.toggle:hover {
+    color: #94a3b8;
+}
+
+button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 12px;
+    background: linear-gradient(135deg, #6366f1, #8b5cf6);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    box-shadow: 0 4px 15px rgba(99, 102, 241, 0.3);
+    transition: all 0.25s ease;
+}
+
+button:hover {
+    background: linear-gradient(135deg, #4f46e5, #7c3aed);
+    box-shadow: 0 6px 20px rgba(99, 102, 241, 0.45);
+    transform: translateY(-2px);
+}
+
+button:active {
+    transform: translateY(0);
+}
+
+#error {
+    margin-top: 20px;
+    color: #ef4444;
+    font-size: 13px;
+    font-weight: 500;
+    min-height: 20px;
+}
+
+.auth-switch {
+    margin-top: 14px;
+    font-size: 13px;
+    color: #94a3b8;
+}
+
+.auth-switch a {
+    color: #8b5cf6;
+    text-decoration: none;
+    font-weight: 600;
+}
+
+.auth-switch a:hover {
+    text-decoration: underline;
+}
+
+.hidden {
+    display: none;
+}

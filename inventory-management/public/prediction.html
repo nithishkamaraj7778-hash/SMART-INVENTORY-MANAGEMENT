@@ -1,0 +1,136 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Predictive Restocking - Restock Management</title>
+  <link rel="stylesheet" href="css/style.css">
+  <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+</head>
+<body>
+
+  <div class="app-container">
+    <!-- Sidebar Navigation -->
+    <div class="sidebar">
+      <div class="sidebar-brand">
+        <i class="fa-solid fa-boxes-stacked"></i>
+        <h2>Restock Management</h2>
+      </div>
+      <ul class="sidebar-menu">
+        <li onclick="openAppPage('dashboard.html')">
+          <i class="fa-solid fa-chart-pie"></i>
+          <span>Dashboard</span>
+        </li>
+        <li onclick="openAppPage('category.html')">
+          <i class="fa-solid fa-tags"></i>
+          <span>Categories</span>
+        </li>
+        <li onclick="openAppPage('product.html')">
+          <i class="fa-solid fa-box-open"></i>
+          <span>Products</span>
+        </li>
+        <li onclick="openAppPage('supplier.html')">
+          <i class="fa-solid fa-truck-field"></i>
+          <span>Suppliers</span>
+        </li>
+        <li onclick="openAppPage('inventory.html')">
+          <i class="fa-solid fa-warehouse"></i>
+          <span>Inventory Status</span>
+        </li>
+        <li class="active" onclick="openAppPage('prediction.html')">
+          <i class="fa-solid fa-gauge-high"></i>
+          <span>Predictive Stock</span>
+        </li>
+      </ul>
+      <div class="sidebar-footer">
+        <li onclick="logout()" style="list-style: none;">
+          <i class="fa-solid fa-right-from-bracket"></i>
+          <span>Sign Out</span>
+        </li>
+      </div>
+    </div>
+
+    <!-- Main Content Area -->
+    <div class="main-content">
+      <div class="page-header">
+        <div class="page-header-title">
+          <h1>Predictive Restocking</h1>
+          <p>Machine learning & sales velocity formulas applied to predict depletion and suggested orders</p>
+        </div>
+        <div class="page-header-actions">
+          <div class="datetime-widget" id="dateTimeWidget">
+            <i class="fa-regular fa-clock"></i>
+            <span id="currentDateTime">Loading...</span>
+          </div>
+        </div>
+      </div>
+
+      <!-- Search and Filters Bar -->
+      <div class="search-filter-bar">
+        <div class="search-input-wrapper">
+          <i class="fa-solid fa-magnifying-glass"></i>
+          <input type="text" id="searchInput" class="search-control" placeholder="Search predictions by product name..." onkeyup="filterPredictions()">
+        </div>
+        <div class="filter-wrapper">
+          <label for="priorityFilter" class="form-label" style="margin-bottom: 0;">Priority Level:</label>
+          <select id="priorityFilter" class="select-control" onchange="filterPredictions()">
+            <option value="">All Priorities</option>
+            <option value="safe">Safe (Days > 15)</option>
+            <option value="monitor">Monitor (Days 8-15)</option>
+            <option value="low stock">Low Stock (Days 4-7)</option>
+            <option value="critical">Critical (Days <= 3)</option>
+            <option value="out of stock">Out of Stock</option>
+          </select>
+        </div>
+      </div>
+
+      <!-- Informative Formula Widget -->
+      <div class="widget" style="background-color: var(--color-primary-light); border-color: rgba(37, 99, 235, 0.15); display: flex; align-items: center; gap: 16px; margin-bottom: 24px;">
+        <div style="font-size: 24px; color: var(--color-primary);"><i class="fa-solid fa-calculator"></i></div>
+        <div style="font-size: 13.5px; line-height: 1.5; color: var(--text-secondary);">
+          <strong>Forecasting Engine Rules:</strong> Depletion rate is computed as: <code>Days Left = Current Stock / Average Daily Sales</code>. 
+          Priority thresholds: <span class="status-badge safe" style="padding: 2px 6px; font-size: 10px;">Safe (>15 days)</span> | 
+          <span class="status-badge monitor" style="padding: 2px 6px; font-size: 10px;">Monitor (8-15 days)</span> | 
+          <span class="status-badge low" style="padding: 2px 6px; font-size: 10px;">Low (4-7 days)</span> | 
+          <span class="status-badge critical" style="padding: 2px 6px; font-size: 10px;">Critical (<=3 days)</span>. 
+          Suggested Order Quantity uses capacities: <code>Maximum Stock - Current Stock</code>.
+        </div>
+      </div>
+
+      <!-- Predictive Stock Table -->
+      <div class="widget">
+        <div class="table-responsive">
+          <table class="custom-table" id="predictionTable">
+            <thead>
+              <tr>
+                <th style="width: 70px;">ID</th>
+                <th>Product Name</th>
+                <th>Current Stock</th>
+                <th>Avg Sales/Day</th>
+                <th>Estimated Days Left</th>
+                <th>Suggested Order Quantity</th>
+                <th>Priority Level</th>
+                <th>Procurement Action</th>
+              </tr>
+            </thead>
+            <tbody id="predictionTableBody">
+              <tr>
+                <td colspan="8" style="text-align: center; color: var(--text-muted);">Calculating restocking forecasts...</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Toast & Loader -->
+  <div class="toast-container" id="toastContainer"></div>
+  <div class="loading-overlay" id="loadingOverlay">
+    <div class="loading-spinner"></div>
+  </div>
+
+  <script src="js/app.js"></script>
+  <script src="js/prediction.js"></script>
+</body>
+</html>
