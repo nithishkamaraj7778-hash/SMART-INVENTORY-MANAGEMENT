@@ -6,10 +6,11 @@ const db = require('./database/db');
 const apiRoutes = require('./routes/api');
 
 const app = express();
-const PORT = process.env.PORT || 5001;
+const PORT = Number(process.env.PORT) || 5001;
+const HOST = process.env.HOST || '0.0.0.0';
 
 // Middlewares
-app.use(cors());
+app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
@@ -34,11 +35,17 @@ app.get('*', (req, res, next) => {
 async function startServer() {
   try {
     await db.initializeDatabase();
-    app.listen(PORT, () => {
+
+    const publicUrl = process.env.RAILWAY_PUBLIC_DOMAIN
+      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
+      : process.env.PUBLIC_URL || `http://${HOST}:${PORT}`;
+
+    app.listen(PORT, HOST, () => {
       console.log(`==================================================`);
       console.log(`  Smart Inventory Predictive Server is active!    `);
+      console.log(`  Host: ${HOST}                                    `);
       console.log(`  Port: ${PORT}                                    `);
-      console.log(`  URL:  http://localhost:${PORT}                   `);
+      console.log(`  URL:  ${publicUrl}                               `);
       console.log(`  Database Mode: [${db.getDbType().toUpperCase()}] `);
       console.log(`==================================================`);
     });
