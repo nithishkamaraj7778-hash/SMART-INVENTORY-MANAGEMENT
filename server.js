@@ -14,6 +14,10 @@ app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
 
+app.get('/health', (req, res) => {
+  res.json({ status: 'ok', database: db.getDbType() });
+});
+
 // Serve static assets from public/ folder
 app.use(express.static(path.join(__dirname, 'public')));
 

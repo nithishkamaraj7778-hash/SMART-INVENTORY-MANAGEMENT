@@ -1,6 +1,5 @@
 # Dependencies
 node_modules/
-inventory-management/node_modules/
 
 # Local development tooling (portable Node / Python — not part of the app)
 node-bin/
@@ -12,7 +11,7 @@ venv/
 .env.*.local
 
 # Runtime database files (schema is created automatically in database/db.js)
-inventory-management/database/*.db
+database/*.db
 
 # OS metadata
 .DS_Store

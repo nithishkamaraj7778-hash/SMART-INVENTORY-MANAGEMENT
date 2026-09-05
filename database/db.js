@@ -8,27 +8,32 @@ let sqliteDb = null;
 let dbType = 'sqlite'; // Default fallback
 
 // DB config from environment variables
-const DB_HOST = process.env.DB_HOST || 'localhost';
-const DB_USER = process.env.DB_USER || 'root';
-const DB_PASSWORD = process.env.DB_PASSWORD || '';
-const DB_NAME = process.env.DB_NAME || 'inventory_db';
+const DB_HOST = process.env.DB_HOST || process.env.MYSQLHOST || 'localhost';
+const DB_USER = process.env.DB_USER || process.env.MYSQLUSER || 'root';
+const DB_PASSWORD = process.env.DB_PASSWORD || process.env.MYSQLPASSWORD || '';
+const DB_NAME = process.env.DB_NAME || process.env.MYSQLDATABASE || 'inventory_db';
+const DB_PORT = Number(process.env.DB_PORT || process.env.MYSQLPORT) || 3306;
 
 async function initializeDatabase() {
   try {
     console.log('[Database] Attempting to connect to MySQL...');
-    // Connect without database first to ensure it exists
-    const tempConnection = await mysql.createConnection({
-      host: DB_HOST,
-      user: DB_USER,
-      password: DB_PASSWORD
-    });
-    
-    await tempConnection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
-    await tempConnection.end();
+    // Railway provisions the configured database and may not grant CREATE DATABASE.
+    if (!process.env.MYSQLHOST) {
+      const tempConnection = await mysql.createConnection({
+        host: DB_HOST,
+        port: DB_PORT,
+        user: DB_USER,
+        password: DB_PASSWORD
+      });
+
+      await tempConnection.query(`CREATE DATABASE IF NOT EXISTS \`${DB_NAME}\`;`);
+      await tempConnection.end();
+    }
 
     // Now establish connection pool with the database
     connectionPool = mysql.createPool({
       host: DB_HOST,
+      port: DB_PORT,
       user: DB_USER,
       password: DB_PASSWORD,
       database: DB_NAME,

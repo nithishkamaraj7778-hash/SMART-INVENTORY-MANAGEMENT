@@ -28,13 +28,12 @@ A full-stack **inventory management and billing (POS)** system with **predictive
 
 ```
 .
-├── inventory-management/     # Main application
-│   ├── server.js             # Express entry point
-│   ├── controllers/          # Route handlers
-│   ├── routes/               # API route definitions
-│   ├── database/
-│   │   └── db.js             # DB connection, schema, and seed data
-│   └── public/               # Static frontend (HTML, CSS, JS)
+├── server.js                 # Express entry point
+├── controllers/              # Route handlers
+├── routes/                   # API route definitions
+├── database/
+│   └── db.js                 # DB connection, schema, and seed data
+├── public/                   # Static frontend (HTML, CSS, JS)
 ├── README.md
 └── .gitignore
 ```
@@ -51,7 +50,7 @@ A full-stack **inventory management and billing (POS)** system with **predictive
 ```bash
 # Clone the repository
 git clone https://github.com/YOUR_USERNAME/restock-management.git
-cd restock-management/inventory-management
+cd restock-management
 
 # Install dependencies
 npm install
@@ -113,9 +112,17 @@ All endpoints are available under both `/` and `/api/` prefixes.
 ## Development
 
 ```bash
-cd inventory-management
 npm start    # Runs on http://localhost:5001
 ```
+
+## Railway Deployment
+
+1. Create a Railway project and deploy this repository as a service.
+2. Add a Railway MySQL service to the project and connect it to the app service.
+3. Railway provides `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, and `MYSQLDATABASE`; the app reads these automatically.
+4. Deploy with the default start command, `npm start`.
+
+Railway supplies the public `PORT` automatically. The app listens on `0.0.0.0` and exposes `/health` for health checks. SQLite remains available only as a local fallback; use Railway MySQL for persistent production data.
 
 ## Roadmap / Ideas to Stand Out
 
