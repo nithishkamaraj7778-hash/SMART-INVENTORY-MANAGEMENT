@@ -13,9 +13,9 @@ exports.getPredictions = async (req, res) => {
     const dateFilter = getLast30DaysFilter();
 
     const predictions = await Promise.all(products.map(async (prod) => {
-      const quantity = parseInt(prod.quantity, 10);
-      const maximum = parseInt(prod.maximum || prod.minimum * 2 || 100, 10);
-      const minimum = parseInt(prod.minimum, 10);
+      const quantity = Math.max(0, Number.parseInt(prod.quantity, 10) || 0);
+      const minimum = Math.max(0, Number.parseInt(prod.minimum, 10) || 0);
+      const maximum = Math.max(minimum, Number.parseInt(prod.maximum, 10) || minimum * 2 || 100);
 
       const salesRows = await db.query(
         `SELECT COALESCE(SUM(si.quantity), 0) as sold_units
@@ -25,11 +25,12 @@ exports.getPredictions = async (req, res) => {
         [prod.id]
       );
 
-      const soldUnits = parseInt(salesRows[0]?.sold_units || 0, 10);
-      const avgDailySales = soldUnits > 0 ? soldUnits / 30 : parseFloat(prod.avg_daily_sales || 0);
+      const soldUnits = Math.max(0, Number.parseInt(salesRows[0]?.sold_units, 10) || 0);
+      const configuredDailySales = Math.max(0, Number.parseFloat(prod.avg_daily_sales) || 0);
+      const avgDailySales = soldUnits > 0 ? soldUnits / 30 : configuredDailySales;
       const daysLeft = avgDailySales > 0 ? quantity / avgDailySales : 999;
       const reorderLevel = Math.max(minimum, Math.ceil(avgDailySales * 7));
-      const suggestedQuantity = Math.max(0, maximum - quantity);
+      const suggestedQuantity = quantity <= reorderLevel ? Math.max(0, maximum - quantity) : 0;
 
       let priority = 'Safe';
       let recommendation = 'Stock Level Safe';
