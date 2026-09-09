@@ -1,0 +1,7 @@
+node_modules/
+database/*.db
+node-bin/
+venv/
+.git/
+.env
+.DS_Store
