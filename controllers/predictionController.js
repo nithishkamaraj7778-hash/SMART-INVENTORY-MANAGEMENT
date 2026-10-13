@@ -2,9 +2,9 @@ const db = require('../database/db');
 
 /** Build a date filter compatible with both MySQL and SQLite. */
 function getLast30DaysFilter() {
-  return db.getDbType() === 'mysql'
-    ? 's.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)'
-    : "s.created_at >= datetime('now', '-30 days')";
+  if (db.getDbType() === 'mysql') return 's.created_at >= DATE_SUB(NOW(), INTERVAL 30 DAY)';
+  if (db.getDbType() === 'postgres') return "s.created_at >= NOW() - INTERVAL '30 days'";
+  return "s.created_at >= datetime('now', '-30 days')";
 }
 
 exports.getPredictions = async (req, res) => {

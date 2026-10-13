@@ -106,7 +106,7 @@ exports.createSale = async (req, res) => {
     const grandTotal = subtotal - discountTotal + gstTotal;
     const receivedAmount = toNumber(cashReceived);
     const balance = receivedAmount - grandTotal;
-    const invoiceRef = invoiceNumber || generateInvoiceNumber();
+    const invoiceRef = generateInvoiceNumber();
 
     const sale = await db.runInTransaction(async () => {
       for (const item of normalizedItems) {

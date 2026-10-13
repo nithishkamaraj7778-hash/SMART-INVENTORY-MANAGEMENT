@@ -19,7 +19,7 @@ A full-stack **inventory management and billing (POS)** system with **predictive
 
 ## Tech Stack
 
-- **Backend:** Node.js, Express, MySQL2 (primary) / SQLite (fallback)
+- **Backend:** Node.js, Express, Neon PostgreSQL on Vercel (MySQL / SQLite for local development)
 - **Frontend:** Vanilla HTML, CSS, JavaScript
 - **Charts:** Chart.js
 - **PDF:** PDFKit
@@ -43,7 +43,7 @@ A full-stack **inventory management and billing (POS)** system with **predictive
 ### Prerequisites
 
 - [Node.js](https://nodejs.org/) 18 or later
-- (Optional) [MySQL](https://www.mysql.com/) 8.x for production use
+- (Optional) [MySQL](https://www.mysql.com/) 8.x or SQLite for local development
 
 ### Installation
 
@@ -75,7 +75,7 @@ Open **http://localhost:5001** in your browser.
 
 ## Database
 
-The app tries **MySQL** first using the credentials in `.env`. If MySQL is unavailable, it automatically falls back to **SQLite** (`database/inventory.db`).
+The app uses **PostgreSQL** when `DATABASE_URL` is set, **MySQL** when MySQL settings are configured, and **SQLite** for local development otherwise. In production, PostgreSQL is required unless the temporary SQLite fallback is explicitly enabled.
 
 Schema creation and sample seed data run automatically on startup — no manual SQL scripts required.
 
@@ -84,6 +84,7 @@ Schema creation and sample seed data run automatically on startup — no manual 
 | Variable | Default | Description |
 |----------|---------|-------------|
 | `PORT` | `5001` | HTTP server port |
+| `DATABASE_URL` | *(unset)* | PostgreSQL connection string (Neon on Vercel) |
 | `DB_HOST` | `localhost` | MySQL host |
 | `DB_USER` | `root` | MySQL username |
 | `DB_PASSWORD` | *(empty)* | MySQL password |
@@ -115,38 +116,17 @@ All endpoints are available under both `/` and `/api/` prefixes.
 npm start    # Runs on http://localhost:5001
 ```
 
-## Railway Deployment
-
-1. Create a Railway project and deploy this repository as a service.
-2. Add a Railway MySQL service to the project and connect it to the app service.
-3. Railway provides `MYSQLHOST`, `MYSQLPORT`, `MYSQLUSER`, `MYSQLPASSWORD`, and `MYSQLDATABASE`; the app reads these automatically.
-4. Deploy with the default start command, `npm start`.
-
-Railway supplies the public `PORT` automatically. The app listens on `0.0.0.0` and exposes `/health` for health checks. SQLite remains available only as a local fallback; use Railway MySQL for persistent production data.
-
 ## Vercel Deployment
 
-The Vercel configuration deploys the Express application as a Node.js function and serves the frontend from that same deployment. Configure a reachable **MySQL** database before deploying; serverless SQLite is not persistent and is rejected in production by default.
+Vercel hosts the Express application and serves the frontend. Provision a Neon PostgreSQL database through the Vercel Marketplace integration and connect it to this project for the Production environment. The integration supplies `DATABASE_URL`; the application creates its tables and initial sample data on first use. A production deployment requires this connection string—SQLite is not persistent in Vercel serverless functions.
 
-In the Vercel project settings, add these environment variables for the environments you will use:
-
-| Variable | Description |
-|----------|-------------|
-| `MYSQLHOST` | Publicly reachable MySQL host |
-| `MYSQLPORT` | MySQL port, usually `3306` |
-| `MYSQLUSER` | MySQL username |
-| `MYSQLPASSWORD` | MySQL password |
-| `MYSQLDATABASE` | Database name |
-
-Alternatively, configure the corresponding `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` variables. The database user must be able to create and update the application tables. Vercel instances share login sessions through the MySQL `auth_sessions` table; tokens are stored as SHA-256 hashes and expire after eight hours.
-
-Connect the GitHub repository to Vercel or deploy with the Vercel CLI after setting the database variables. Verify `/health` reports `"status":"ok"` and `"database":"mysql"` after the deployment completes. Do not enable `ALLOW_SQLITE_FALLBACK` for production.
+The same database stores login sessions so authenticated requests work across serverless instances. Verify `/health` reports `"status":"ok"` and `"database":"postgres"` after deployment.
 
 ## Roadmap / Ideas to Stand Out
 
 - [ ] Password hashing (bcrypt) and JWT-based sessions
 - [ ] Role-based access (admin vs cashier)
-- [ ] Docker Compose setup (Node + MySQL)
+- [ ] Docker Compose setup (Node + PostgreSQL)
 - [ ] Automated tests (Jest + Supertest)
 - [ ] CI/CD with GitHub Actions
 - [ ] Dark/light theme toggle

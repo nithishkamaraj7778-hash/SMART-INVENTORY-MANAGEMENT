@@ -72,9 +72,7 @@ async function startServer() {
   try {
     await ensureDatabaseInitialized();
 
-    const publicUrl = process.env.RAILWAY_PUBLIC_DOMAIN
-      ? `https://${process.env.RAILWAY_PUBLIC_DOMAIN}`
-      : process.env.PUBLIC_URL || `http://${HOST}:${PORT}`;
+    const publicUrl = process.env.PUBLIC_URL || `http://${HOST}:${PORT}`;
 
     app.listen(PORT, HOST, () => {
       console.log(`==================================================`);

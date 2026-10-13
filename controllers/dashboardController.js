@@ -6,15 +6,16 @@ async function buildDashboardPayload() {
   const suppliersCountRes = await db.query('SELECT COUNT(*) as count FROM supplier');
   const lowStockCountRes = await db.query('SELECT COUNT(*) as count FROM product WHERE quantity <= minimum');
 
-  const totalProducts = productsCountRes[0]?.count || 0;
-  const totalCategories = categoriesCountRes[0]?.count || 0;
-  const totalSuppliers = suppliersCountRes[0]?.count || 0;
-  const lowStockCount = lowStockCountRes[0]?.count || 0;
+  const totalProducts = Number(productsCountRes[0]?.count || 0);
+  const totalCategories = Number(categoriesCountRes[0]?.count || 0);
+  const totalSuppliers = Number(suppliersCountRes[0]?.count || 0);
+  const lowStockCount = Number(lowStockCountRes[0]?.count || 0);
 
   const recentProducts = await db.query('SELECT * FROM product ORDER BY id DESC LIMIT 5');
   const lowStockAlerts = await db.query('SELECT * FROM product WHERE quantity <= minimum ORDER BY quantity ASC LIMIT 10');
   const productStocks = await db.query('SELECT name, quantity, minimum FROM product ORDER BY name ASC');
-  const categoryDistribution = await db.query('SELECT category, COUNT(*) as count FROM product GROUP BY category');
+  const categoryDistributionRows = await db.query('SELECT category, COUNT(*) as count FROM product GROUP BY category');
+  const categoryDistribution = categoryDistributionRows.map((row) => ({ ...row, count: Number(row.count) }));
 
   const todayStart = new Date();
   todayStart.setHours(0, 0, 0, 0);
@@ -77,9 +78,9 @@ async function buildDashboardPayload() {
       lowStockCount
     },
     salesStats: {
-      todaySalesCount: todaySalesRes[0]?.count || 0,
+      todaySalesCount: Number(todaySalesRes[0]?.count || 0),
       todayRevenue: Number(todaySalesRes[0]?.revenue || 0).toFixed(2),
-      productsSoldToday: todayItemsRes[0]?.sold || 0
+      productsSoldToday: Number(todayItemsRes[0]?.sold || 0)
     },
     recentProducts,
     lowStockAlerts,
