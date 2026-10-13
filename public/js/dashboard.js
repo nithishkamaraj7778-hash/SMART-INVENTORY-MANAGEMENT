@@ -159,6 +159,9 @@ function populateNotificationsLog(notifications) {
 }
 
 function renderCharts(chartData) {
+  Chart.defaults.color = '#a7b4c7';
+  Chart.defaults.borderColor = 'rgba(180, 198, 224, 0.12)';
+
   // --- A. Product Stock Levels (Bar Chart) ---
   const barCanvas = document.getElementById('stockBarChart');
   if (barCanvas) {
@@ -236,7 +239,7 @@ function renderCharts(chartData) {
             'rgba(239, 68, 68, 0.75)'    // Red
           ],
           borderWidth: 2,
-          borderColor: '#ffffff'
+          borderColor: '#101a2b'
         }]
       },
       options: {
