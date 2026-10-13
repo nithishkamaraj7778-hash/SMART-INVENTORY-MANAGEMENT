@@ -24,16 +24,6 @@ function ensureDatabaseInitialized() {
 app.use(cors({ origin: true, credentials: true }));
 app.use(express.json());
 app.use(express.urlencoded({ extended: true }));
-app.use((req, res, next) => {
-  ensureDatabaseInitialized().then(() => next()).catch((err) => {
-    console.error('Database initialization failed while handling a request:', err);
-    res.status(503).json({ success: false, message: 'The application database is unavailable.' });
-  });
-});
-
-app.get('/health', (req, res) => {
-  res.json({ status: 'ok', database: db.getDbType() });
-});
 
 // Serve static assets from public/ folder
 app.use(express.static(path.join(__dirname, 'public')));
@@ -41,6 +31,26 @@ app.use(express.static(path.join(__dirname, 'public')));
 // Serve the public landing page before the root-level API compatibility routes.
 app.get('/', (req, res) => {
   res.sendFile(path.join(__dirname, 'public', 'login.html'));
+});
+
+app.get('/health', (req, res) => {
+  ensureDatabaseInitialized()
+    .then(() => res.json({ status: 'ok', database: db.getDbType() }))
+    .catch((err) => {
+      console.error('Database health check failed:', err);
+      res.status(503).json({ status: 'unavailable', database: db.getDbType() });
+    });
+});
+
+app.use((req, res, next) => {
+  const isApiPath = req.path.startsWith('/api/');
+  const isRootApiPath = /^\/(login|register|auth(?:\/|$)|dashboard(?:\/|$)|categories(?:\/|$)|products(?:\/|$)|suppliers(?:\/|$)|prediction(?:\/|$)|billing(?:\/|$)|sales(?:\/|$))/.test(req.path);
+  if (!isApiPath && !isRootApiPath) return next();
+
+  ensureDatabaseInitialized().then(() => next()).catch((err) => {
+    console.error('Database initialization failed while handling an API request:', err);
+    res.status(503).json({ success: false, message: 'The application database is unavailable.' });
+  });
 });
 
 // Mount /api first so its requests are not intercepted by the root compatibility mount.
