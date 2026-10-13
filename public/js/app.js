@@ -2,11 +2,24 @@
 // Smart Inventory Management - Global app.js
 // ==========================================
 
-// 1. Session Protection Check (except on login page)
-if (!window.location.pathname.includes('login.html')) {
-  if (localStorage.getItem('loggedIn') !== 'true') {
-    window.location.href = 'login.html';
-  }
+// 1. Attach the server session to API calls and guard protected pages.
+const originalFetch = window.fetch.bind(window);
+window.fetch = (input, init = {}) => {
+  const headers = new Headers(init.headers || {});
+  const token = localStorage.getItem('authToken');
+  if (token) headers.set('Authorization', `Bearer ${token}`);
+  return originalFetch(input, { ...init, headers }).then((response) => {
+    if (response.status === 401 && !window.location.pathname.includes('login.html')) {
+      localStorage.removeItem('authToken');
+      localStorage.removeItem('loggedIn');
+      window.location.href = 'login.html';
+    }
+    return response;
+  });
+};
+
+if (!window.location.pathname.includes('login.html') && !localStorage.getItem('authToken')) {
+  window.location.href = 'login.html';
 }
 
 // 2. Real-Time DateTime Widget & Mobile Sidebar
@@ -73,7 +86,7 @@ function updateClock() {
     hour12: true
   };
   
-  dateTimeEl.innerHTML = `<i class="fa-regular fa-clock"></i> ${now.toLocaleString('en-US', options)}`;
+  dateTimeEl.textContent = now.toLocaleString('en-US', options);
 }
 
 // 3. Floating Toast Notifications
@@ -89,10 +102,11 @@ function showToast(message, type = 'success') {
   if (type === 'warning') iconClass = 'fa-solid fa-circle-exclamation';
   if (type === 'info') iconClass = 'fa-solid fa-circle-info';
 
-  toast.innerHTML = `
-    <i class="${iconClass} toast-icon"></i>
-    <span>${message}</span>
-  `;
+  const icon = document.createElement('i');
+  icon.className = `${iconClass} toast-icon`;
+  const text = document.createElement('span');
+  text.textContent = message;
+  toast.append(icon, text);
 
   container.appendChild(toast);
 
@@ -110,14 +124,16 @@ function showLoading(show = true) {
   }
 }
 
-// 5. Open app pages in a new tab
+// 5. Keep navigation in the current application tab.
 function openAppPage(pagePath) {
   if (!pagePath) return;
-  window.open(pagePath, '_blank', 'noopener,noreferrer');
+  window.location.href = pagePath;
 }
 
 // 6. User Sign Out
 function logout() {
+  fetch('/api/auth/logout', { method: 'POST' }).catch(() => {});
+  localStorage.removeItem('authToken');
   localStorage.removeItem('loggedIn');
   window.location.href = 'login.html';
 }

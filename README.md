@@ -124,6 +124,24 @@ npm start    # Runs on http://localhost:5001
 
 Railway supplies the public `PORT` automatically. The app listens on `0.0.0.0` and exposes `/health` for health checks. SQLite remains available only as a local fallback; use Railway MySQL for persistent production data.
 
+## Vercel Deployment
+
+The Vercel configuration deploys the Express application as a Node.js function and serves the frontend from that same deployment. Configure a reachable **MySQL** database before deploying; serverless SQLite is not persistent and is rejected in production by default.
+
+In the Vercel project settings, add these environment variables for the environments you will use:
+
+| Variable | Description |
+|----------|-------------|
+| `MYSQLHOST` | Publicly reachable MySQL host |
+| `MYSQLPORT` | MySQL port, usually `3306` |
+| `MYSQLUSER` | MySQL username |
+| `MYSQLPASSWORD` | MySQL password |
+| `MYSQLDATABASE` | Database name |
+
+Alternatively, configure the corresponding `DB_HOST`, `DB_PORT`, `DB_USER`, `DB_PASSWORD`, and `DB_NAME` variables. The database user must be able to create and update the application tables. Vercel instances share login sessions through the MySQL `auth_sessions` table; tokens are stored as SHA-256 hashes and expire after eight hours.
+
+Connect the GitHub repository to Vercel or deploy with the Vercel CLI after setting the database variables. Verify `/health` reports `"status":"ok"` and `"database":"mysql"` after the deployment completes. Do not enable `ALLOW_SQLITE_FALLBACK` for production.
+
 ## Roadmap / Ideas to Stand Out
 
 - [ ] Password hashing (bcrypt) and JWT-based sessions

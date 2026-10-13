@@ -46,19 +46,17 @@ function renderInvoiceContent(sale) {
   if (!container) return;
 
   const rows = (sale.items || []).map((item, index) => {
-    const lineSubtotal = item.price * item.quantity;
-    const lineDiscount = lineSubtotal * (item.discount / 100);
-    const discounted = lineSubtotal - lineDiscount;
-    const gstValue = discounted * (item.gst / 100);
-    const total = discounted + gstValue;
+    const lineDiscount = Number(item.discount) || 0;
+    const gstValue = Number(item.gst) || 0;
+    const total = Number(item.subtotal) || 0;
     return `
       <tr>
         <td>${index + 1}</td>
         <td>${item.product_name}</td>
         <td>${item.quantity}</td>
         <td>₹${formatCurrency(item.price)}</td>
-        <td>${item.discount}%</td>
-        <td>${item.gst}%</td>
+        <td>₹${formatCurrency(lineDiscount)}</td>
+        <td>₹${formatCurrency(gstValue)}</td>
         <td>₹${formatCurrency(total)}</td>
       </tr>
     `;

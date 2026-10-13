@@ -68,6 +68,10 @@ exports.getPredictions = async (req, res) => {
         suggested_quantity: suggestedQuantity,
         reorder_level: reorderLevel,
         risk_level: riskLevel,
+        data_source: soldUnits > 0 ? 'Last 30 days of sales' : 'Configured average sales',
+        explanation: daysLeft === 999
+          ? 'No recent sales velocity is available; the configured average is used.'
+          : `At the current sales velocity, stock is expected to last about ${Number(daysLeft.toFixed(1))} days.`,
         priority,
         recommendation,
         priorityClass

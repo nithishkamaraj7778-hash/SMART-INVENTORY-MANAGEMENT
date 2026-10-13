@@ -50,10 +50,14 @@ async function initializeDatabase() {
 
     // Run schema creation for MySQL
     await setupMySQLSchema();
+    await query('DELETE FROM auth_sessions WHERE expires_at <= ?', [Date.now()]);
     // Ensure product table has gst column even if DB was created earlier
     await ensureProductGstColumn();
   } catch (err) {
     console.warn(`[Database] MySQL connection failed: ${err.message}`);
+    if ((process.env.NODE_ENV === 'production' || process.env.VERCEL) && process.env.ALLOW_SQLITE_FALLBACK !== 'true') {
+      throw new Error('MySQL is required in production. Set ALLOW_SQLITE_FALLBACK=true only for temporary demo deployments.');
+    }
     console.warn('[Database] Falling back to SQLite database...');
     dbType = 'sqlite';
     await setupSQLite();
@@ -106,6 +110,13 @@ async function setupMySQLSchema() {
       \`id\` INT AUTO_INCREMENT PRIMARY KEY,
       \`username\` VARCHAR(50) UNIQUE NOT NULL,
       \`password\` VARCHAR(255) NOT NULL
+    );`,
+    `CREATE TABLE IF NOT EXISTS \`auth_sessions\` (
+      \`token_hash\` CHAR(64) PRIMARY KEY,
+      \`user_id\` INT NOT NULL,
+      \`username\` VARCHAR(50) NOT NULL,
+      \`expires_at\` BIGINT NOT NULL,
+      INDEX \`idx_auth_sessions_expires_at\` (\`expires_at\`)
     );`,
     `CREATE TABLE IF NOT EXISTS \`category\` (
       \`id\` INT AUTO_INCREMENT PRIMARY KEY,
@@ -205,11 +216,11 @@ async function setupMySQLSchema() {
 
 function setupSQLite() {
   return new Promise((resolve, reject) => {
-    const dbDir = path.join(__dirname);
+    const dbPath = process.env.SQLITE_DATABASE_PATH || path.join(__dirname, 'inventory.db');
+    const dbDir = path.dirname(dbPath);
     if (!fs.existsSync(dbDir)) {
       fs.mkdirSync(dbDir, { recursive: true });
     }
-    const dbPath = path.join(dbDir, 'inventory.db');
     
     sqliteDb = new sqlite3.Database(dbPath, (err) => {
       if (err) {
@@ -225,6 +236,15 @@ function setupSQLite() {
             id INTEGER PRIMARY KEY AUTOINCREMENT,
             username TEXT UNIQUE NOT NULL,
             password TEXT NOT NULL
+          )
+        `);
+
+        sqliteDb.run(`
+          CREATE TABLE IF NOT EXISTS auth_sessions (
+            token_hash TEXT PRIMARY KEY,
+            user_id INTEGER NOT NULL,
+            username TEXT NOT NULL,
+            expires_at INTEGER NOT NULL
           )
         `);
         
@@ -296,8 +316,8 @@ function setupSQLite() {
         // Seed Admin credentials
         sqliteDb.run(`
           INSERT INTO admin (username, password)
-          VALUES ('admin', 'admin123')
-          ON CONFLICT(username) DO UPDATE SET password=excluded.password
+          SELECT 'admin', 'admin123'
+          WHERE NOT EXISTS (SELECT 1 FROM admin WHERE username = 'admin')
         `);
 
         // Check and Seed Categories

@@ -9,10 +9,15 @@ const dashboardController = require('../controllers/dashboardController');
 const predictionController = require('../controllers/predictionController');
 const billingRoutes = require('./billingRoutes');
 const salesRoutes = require('./salesRoutes');
+const { requireAuth } = require('../middleware/authMiddleware');
 
 // ── Authentication ──────────────────────────────────────────────────────────
 router.post('/login', authController.login);
 router.post('/register', authController.register);
+router.get('/auth/me', requireAuth, authController.me);
+router.post('/auth/logout', requireAuth, authController.logout);
+
+router.use(requireAuth);
 
 // ── Dashboard ───────────────────────────────────────────────────────────────
 router.get('/dashboard', dashboardController.getDashboardData);

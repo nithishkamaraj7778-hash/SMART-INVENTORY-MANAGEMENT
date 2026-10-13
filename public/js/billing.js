@@ -265,8 +265,7 @@ function bindEvents() {
           customerName: document.getElementById('customerName').value.trim(),
           customerPhone: document.getElementById('customerPhone').value.trim(),
           paymentMethod,
-          cashReceived,
-          invoiceNumber: document.getElementById('invoiceNumber').value
+          cashReceived
         })
       });
 
@@ -275,7 +274,7 @@ function bindEvents() {
         throw new Error(data.message || 'Billing failed');
       }
 
-      const currentInvoiceNumber = document.getElementById('invoiceNumber').value;
+      const currentInvoiceNumber = data.sale.invoiceNumber;
       const paymentTime = new Date();
       initializeInvoiceMeta(paymentTime);
       const balance = cashReceived - totals.grandTotal;

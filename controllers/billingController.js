@@ -10,6 +10,10 @@ function toNumber(value, fallback = 0) {
   return Number.isFinite(parsed) ? parsed : fallback;
 }
 
+function cleanText(value, maxLength = 100) {
+  return String(value || '').trim().slice(0, maxLength);
+}
+
 // Create a new sales transaction and immediately reduce inventory stock.
 exports.createSale = async (req, res) => {
   const {
@@ -17,8 +21,7 @@ exports.createSale = async (req, res) => {
     customerName = '',
     customerPhone = '',
     paymentMethod = 'Cash',
-    cashReceived = 0,
-    invoiceNumber = ''
+    cashReceived = 0
   } = req.body;
 
   if (!Array.isArray(items) || items.length === 0) {
@@ -26,21 +29,39 @@ exports.createSale = async (req, res) => {
   }
 
   try {
+    const requestedItems = new Map();
+    const allowedPaymentMethods = new Set(['Cash', 'Card', 'UPI', 'Credit']);
+
+    if (!allowedPaymentMethods.has(paymentMethod)) {
+      return res.status(400).json({ success: false, message: 'Choose a valid payment method.' });
+    }
+
+    for (const item of items) {
+      const productId = Number.parseInt(item.productId, 10);
+      const quantity = Number.parseInt(item.quantity, 10);
+      const discountPercent = toNumber(item.discountPercent);
+
+      if (!Number.isInteger(productId) || productId <= 0 || !Number.isInteger(quantity) || quantity <= 0) {
+        return res.status(400).json({ success: false, message: 'Each item needs a valid product and quantity.' });
+      }
+      if (discountPercent < 0 || discountPercent > 100) {
+        return res.status(400).json({ success: false, message: 'Discounts must be between 0 and 100 percent.' });
+      }
+
+      const existing = requestedItems.get(productId) || { quantity: 0, discountPercent };
+      existing.quantity += quantity;
+      existing.discountPercent = Math.max(existing.discountPercent, discountPercent);
+      requestedItems.set(productId, existing);
+    }
+
     const normalizedItems = [];
     let subtotal = 0;
     let discountTotal = 0;
     let gstTotal = 0;
 
-    for (const item of items) {
-      const productId = parseInt(item.productId, 10);
-      const quantity = parseInt(item.quantity, 10);
-      const unitPrice = toNumber(item.price);
-      const discountPercent = toNumber(item.discountPercent);
-      const gstPercent = toNumber(item.gstPercent);
-
-      if (!productId || !quantity || quantity <= 0) {
-        return res.status(400).json({ success: false, message: 'Each item needs a valid quantity.' });
-      }
+    for (const [productId, requested] of requestedItems) {
+      const quantity = requested.quantity;
+      const discountPercent = requested.discountPercent;
 
       const productRows = await db.query('SELECT * FROM product WHERE id = ?', [productId]);
       const product = productRows[0];
@@ -49,7 +70,7 @@ exports.createSale = async (req, res) => {
         return res.status(404).json({ success: false, message: 'One or more products were not found.' });
       }
 
-      const availableStock = parseInt(product.quantity, 10);
+      const availableStock = Number.parseInt(product.quantity, 10) || 0;
       if (availableStock <= 0) {
         return res.status(409).json({ success: false, message: `Out of Stock: ${product.name}` });
       }
@@ -58,6 +79,8 @@ exports.createSale = async (req, res) => {
         return res.status(409).json({ success: false, message: `Only ${availableStock} items available for ${product.name}.` });
       }
 
+      const unitPrice = toNumber(product.price);
+      const gstPercent = toNumber(product.gst);
       const lineSubtotal = unitPrice * quantity;
       const lineDiscount = lineSubtotal * (discountPercent / 100);
       const discountedSubtotal = lineSubtotal - lineDiscount;
@@ -87,7 +110,13 @@ exports.createSale = async (req, res) => {
 
     const sale = await db.runInTransaction(async () => {
       for (const item of normalizedItems) {
-        await db.query('UPDATE product SET quantity = quantity - ? WHERE id = ?', [item.quantity, item.productId]);
+        const updateResult = await db.query(
+          'UPDATE product SET quantity = quantity - ? WHERE id = ? AND quantity >= ?',
+          [item.quantity, item.productId, item.quantity]
+        );
+        if (!updateResult.affectedRows) {
+          throw new Error(`Stock changed before billing completed for product ${item.productId}.`);
+        }
       }
 
       const insertResult = await db.query(
@@ -95,8 +124,8 @@ exports.createSale = async (req, res) => {
          VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
         [
           invoiceRef,
-          customerName || '',
-          customerPhone || '',
+          cleanText(customerName),
+          cleanText(customerPhone, 50),
           paymentMethod,
           Number(subtotal.toFixed(2)),
           Number(discountTotal.toFixed(2)),

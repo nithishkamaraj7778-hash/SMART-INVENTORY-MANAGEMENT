@@ -3,48 +3,107 @@
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Restock Management - Account Access</title>
-  <link rel="stylesheet" href="css/login.css">
-  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <meta name="theme-color" content="#080d18">
+  <meta name="description" content="Sign in to your Restock Management inventory and billing workspace.">
+  <title>Sign in | Restock Management</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=DM+Sans:wght@400;500;600;700&family=Manrope:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.7.2/css/all.min.css">
+  <link rel="stylesheet" href="css/login.css">
 </head>
 <body>
+  <div class="page-shell">
+    <header class="topbar">
+      <a class="brand" href="/" aria-label="Restock Management home">
+        <span class="brand-mark"><i class="fa-solid fa-cubes-stacked" aria-hidden="true"></i></span>
+        <span>restock<span class="brand-light">.</span></span>
+      </a>
+      <span class="topbar-note"><i class="fa-solid fa-shield-halved" aria-hidden="true"></i> Secure workspace access</span>
+    </header>
 
-  <div class="login-box">
-    <div class="logo">
-      <i class="fa-solid fa-boxes-stacked"></i>
-    </div>
-    <h1>Restock Management</h1>
-    <p>Inventory & Billing Control Center</p>
+    <main class="welcome-layout">
+      <section class="intro-panel" aria-labelledby="welcomeTitle">
+        <div class="intro-copy">
+          <p class="eyebrow"><span></span> INVENTORY INTELLIGENCE</p>
+          <h1 id="welcomeTitle">Make every item<br>count<span>.</span></h1>
+          <p class="intro-description">A clearer view of your stock, sales, and next move — all in one place.</p>
 
-    <form id="loginForm">
-      <div class="input-box">
-        <i class="fa-solid fa-user"></i>
-        <input type="text" id="username" placeholder="Username" required autocomplete="username">
-      </div>
-      
-      <div class="input-box">
-        <i class="fa-solid fa-lock"></i>
-        <input type="password" id="password" placeholder="Password" required autocomplete="current-password">
-        <i class="fa-solid fa-eye toggle" id="togglePassword"></i>
-      </div>
+          <div class="feature-list" aria-label="Workspace features">
+            <div class="feature-item">
+              <span class="feature-icon"><i class="fa-solid fa-boxes-stacked" aria-hidden="true"></i></span>
+              <span><strong>Inventory, in focus</strong><small>Keep products and stock levels in sync.</small></span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon"><i class="fa-solid fa-chart-line" aria-hidden="true"></i></span>
+              <span><strong>Plan ahead with confidence</strong><small>Turn sales patterns into smarter restocks.</small></span>
+            </div>
+            <div class="feature-item">
+              <span class="feature-icon"><i class="fa-solid fa-receipt" aria-hidden="true"></i></span>
+              <span><strong>Sales that flow</strong><small>Bring checkout and inventory together.</small></span>
+            </div>
+          </div>
+        </div>
 
-      <div class="input-box hidden" id="confirmPasswordGroup">
-        <i class="fa-solid fa-lock"></i>
-        <input type="password" id="confirmPassword" placeholder="Confirm Password" autocomplete="new-password">
-      </div>
+        <div class="service-card" id="serviceStatus" data-state="checking" role="status" aria-live="polite">
+          <span class="service-indicator" aria-hidden="true"></span>
+          <span class="service-copy">
+            <strong id="serviceStatusLabel">Connecting to your workspace</strong>
+            <small id="serviceDatabase">Checking application services…</small>
+          </span>
+          <i class="fa-solid fa-arrow-up-right-from-square service-arrow" aria-hidden="true"></i>
+        </div>
+        <p class="intro-footer">A smarter way to stay one step ahead.</p>
+      </section>
 
-      <button type="submit" id="loginBtn">
-        <i class="fa-solid fa-right-to-bracket"></i> Login
-      </button>
+      <section class="auth-panel" aria-labelledby="authTitle">
+        <div class="auth-heading">
+          <div class="auth-symbol"><i class="fa-solid fa-arrow-right-to-bracket" aria-hidden="true"></i></div>
+          <p class="eyebrow">YOUR WORKSPACE</p>
+          <h2 id="authTitle">Welcome back</h2>
+          <p id="authDescription">Sign in to continue to your inventory dashboard.</p>
+        </div>
 
-      <p class="auth-switch">
-        <span id="authHint">New here?</span>
-        <a href="#" id="toggleAuthMode">Create account</a>
-      </p>
-      
-      <p id="error"></p>
-    </form>
+        <form id="loginForm" novalidate>
+          <label class="field-label" for="username">Username</label>
+          <div class="input-box">
+            <i class="fa-regular fa-user field-icon" aria-hidden="true"></i>
+            <input type="text" id="username" name="username" placeholder="Enter your username" required autocomplete="username">
+          </div>
+
+          <label class="field-label" for="password">Password</label>
+          <div class="input-box">
+            <i class="fa-solid fa-lock field-icon" aria-hidden="true"></i>
+            <input type="password" id="password" name="password" placeholder="Enter your password" required autocomplete="current-password">
+            <button class="toggle" id="togglePassword" type="button" aria-label="Show password" aria-pressed="false">
+              <i class="fa-regular fa-eye" aria-hidden="true"></i>
+            </button>
+          </div>
+
+          <div class="input-box confirm-field hidden" id="confirmPasswordGroup">
+            <i class="fa-solid fa-lock field-icon" aria-hidden="true"></i>
+            <input type="password" id="confirmPassword" name="confirmPassword" placeholder="Confirm your password" autocomplete="new-password">
+          </div>
+
+          <button class="submit-button" type="submit" id="loginBtn">
+            <span>Sign in</span><i class="fa-solid fa-arrow-right" aria-hidden="true"></i>
+          </button>
+
+          <p class="auth-switch">
+            <span id="authHint">New to Restock?</span>
+            <a href="#" id="toggleAuthMode">Create an account</a>
+          </p>
+          <p class="form-message" id="error" role="alert" aria-live="polite"></p>
+        </form>
+
+        <div class="auth-footnote"><i class="fa-solid fa-lock" aria-hidden="true"></i> Your account is protected by secure sign-in.</div>
+      </section>
+    </main>
+
+    <footer class="page-footer">
+      <span>RESTOCK MANAGEMENT</span>
+      <span>Inventory &amp; billing, working together.</span>
+    </footer>
   </div>
 
   <script src="js/login.js"></script>
