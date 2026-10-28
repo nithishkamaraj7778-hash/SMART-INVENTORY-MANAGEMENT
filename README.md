@@ -33,10 +33,20 @@ A full-stack **inventory management and billing (POS)** system with **predictive
 ├── routes/                   # API route definitions
 ├── database/
 │   └── db.js                 # DB connection, schema, and seed data
+├── lib/                      # Shared business logic for validation and forecasting
+├── docs/
+│   ├── API.md                # Route and payload documentation
+│   └── DATABASE.md           # Schema and relationship documentation
 ├── public/                   # Static frontend (HTML, CSS, JS)
+├── test/                     # Node.js unit tests
 ├── README.md
 └── .gitignore
 ```
+
+## Documentation
+
+- [API endpoint reference](./docs/API.md)
+- [Database schema reference](./docs/DATABASE.md)
 
 ## Getting Started
 
@@ -113,6 +123,8 @@ All endpoints are available under both `/` and `/api/` prefixes.
 ## Development
 
 ```bash
+npm install
+npm test     # Runs the business-logic unit tests
 npm start    # Runs on http://localhost:5001
 ```
 
@@ -127,7 +139,7 @@ The same database stores login sessions so authenticated requests work across se
 - [ ] Password hashing (bcrypt) and JWT-based sessions
 - [ ] Role-based access (admin vs cashier)
 - [ ] Docker Compose setup (Node + PostgreSQL)
-- [ ] Automated tests (Jest + Supertest)
+- [x] Automated tests (Node.js built-in test runner)
 - [ ] CI/CD with GitHub Actions
 - [ ] Dark/light theme toggle
 - [ ] Export reports to CSV/Excel

@@ -5,11 +5,15 @@ async function buildDashboardPayload() {
   const categoriesCountRes = await db.query('SELECT COUNT(*) as count FROM category');
   const suppliersCountRes = await db.query('SELECT COUNT(*) as count FROM supplier');
   const lowStockCountRes = await db.query('SELECT COUNT(*) as count FROM product WHERE quantity <= minimum');
+  const inventoryValueRes = await db.query('SELECT COALESCE(SUM(price * quantity), 0) as value FROM product');
+  const stockoutRiskRes = await db.query('SELECT COUNT(*) as count FROM product WHERE quantity <= minimum OR quantity = 0');
 
   const totalProducts = Number(productsCountRes[0]?.count || 0);
   const totalCategories = Number(categoriesCountRes[0]?.count || 0);
   const totalSuppliers = Number(suppliersCountRes[0]?.count || 0);
   const lowStockCount = Number(lowStockCountRes[0]?.count || 0);
+  const inventoryValue = Number(inventoryValueRes[0]?.value || 0);
+  const stockoutRiskCount = Number(stockoutRiskRes[0]?.count || 0);
 
   const recentProducts = await db.query('SELECT * FROM product ORDER BY id DESC LIMIT 5');
   const lowStockAlerts = await db.query('SELECT * FROM product WHERE quantity <= minimum ORDER BY quantity ASC LIMIT 10');
@@ -32,6 +36,34 @@ async function buildDashboardPayload() {
   );
   const latestBills = await db.query(
     'SELECT id, invoice_number, grand_total, created_at, customer_name FROM sales ORDER BY id DESC LIMIT 5'
+  );
+  const topProductsRes = await db.query(
+    `SELECT p.name, COALESCE(SUM(si.quantity), 0) as sold_units
+     FROM product p
+     LEFT JOIN sale_items si ON si.product_id = p.id
+     GROUP BY p.id, p.name
+     ORDER BY sold_units DESC, p.name ASC
+     LIMIT 5`
+  );
+  const slowMovingRes = await db.query(
+    `SELECT p.name, p.quantity, p.minimum, p.avg_daily_sales
+     FROM product p
+     WHERE COALESCE(p.avg_daily_sales, 0) <= 1
+     ORDER BY p.avg_daily_sales ASC, p.quantity ASC
+     LIMIT 5`
+  );
+  const salesTrendDateFilter = db.getDbType() === 'postgres'
+    ? "created_at >= NOW() - INTERVAL '7 days'"
+    : db.getDbType() === 'mysql'
+      ? 'created_at >= DATE_SUB(NOW(), INTERVAL 7 DAY)'
+      : "created_at >= datetime('now', '-7 days')";
+
+  const salesTrendRes = await db.query(
+    `SELECT DATE(created_at) as date, COALESCE(SUM(grand_total), 0) as revenue
+     FROM sales
+     WHERE ${salesTrendDateFilter}
+     GROUP BY DATE(created_at)
+     ORDER BY date ASC`
   );
 
   const allProducts = await db.query('SELECT name, quantity, minimum, avg_daily_sales FROM product');
@@ -75,7 +107,9 @@ async function buildDashboardPayload() {
       totalProducts,
       totalCategories,
       totalSuppliers,
-      lowStockCount
+      lowStockCount,
+      inventoryValue,
+      stockoutRiskCount
     },
     salesStats: {
       todaySalesCount: Number(todaySalesRes[0]?.count || 0),
@@ -87,7 +121,14 @@ async function buildDashboardPayload() {
     latestBills,
     charts: {
       productStocks,
-      categoryDistribution
+      categoryDistribution,
+      salesTrend: salesTrendRes.map((row) => ({ ...row, revenue: Number(row.revenue || 0) }))
+    },
+    analytics: {
+      topSellingProducts: topProductsRes.map((row) => ({ ...row, sold_units: Number(row.sold_units || 0) })),
+      slowMovingProducts: slowMovingRes.map((row) => ({ ...row, avg_daily_sales: Number(row.avg_daily_sales || 0), quantity: Number(row.quantity || 0) })),
+      inventoryValue,
+      stockoutRiskCount
     },
     notifications
   };

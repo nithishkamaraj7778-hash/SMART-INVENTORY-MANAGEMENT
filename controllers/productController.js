@@ -1,4 +1,5 @@
 const db = require('../database/db');
+const { validateProductPayload } = require('../lib/inventoryLogic');
 
 // Get all products
 exports.getProducts = async (req, res) => {
@@ -13,10 +14,9 @@ exports.getProducts = async (req, res) => {
 
 // Add product
 exports.createProduct = async (req, res) => {
-  const { name, category, supplier, price, quantity, minimum, maximum, avg_daily_sales, gst } = req.body;
-
-  if (!name || !category || !supplier || price === undefined || quantity === undefined || minimum === undefined || maximum === undefined || avg_daily_sales === undefined) {
-    return res.status(400).json({ message: 'All product fields are required' });
+  const validation = validateProductPayload(req.body);
+  if (!validation.valid) {
+    return res.status(400).json({ message: validation.message });
   }
 
   try {
@@ -24,30 +24,22 @@ exports.createProduct = async (req, res) => {
       `INSERT INTO product (name, category, supplier, price, gst, quantity, minimum, maximum, avg_daily_sales) 
        VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
       [
-        name.trim(),
-        category,
-        supplier,
-        parseFloat(price),
-        Number.isFinite(Number(gst)) ? Number(gst) : 0,
-        parseInt(quantity),
-        parseInt(minimum),
-        parseInt(maximum),
-        parseFloat(avg_daily_sales)
+        validation.normalized.name,
+        validation.normalized.category,
+        validation.normalized.supplier,
+        validation.normalized.price,
+        validation.normalized.gst,
+        validation.normalized.quantity,
+        validation.normalized.minimum,
+        validation.normalized.maximum,
+        validation.normalized.avg_daily_sales
       ]
     );
 
     const insertId = result.insertId;
     res.status(201).json({
       id: insertId,
-      name: name.trim(),
-      category,
-      supplier,
-      price: parseFloat(price),
-      gst: Number.isFinite(Number(gst)) ? Number(gst) : 0,
-      quantity: parseInt(quantity),
-      minimum: parseInt(minimum),
-      maximum: parseInt(maximum),
-      avg_daily_sales: parseFloat(avg_daily_sales)
+      ...validation.normalized
     });
   } catch (err) {
     console.error('Error creating product:', err);
@@ -58,10 +50,9 @@ exports.createProduct = async (req, res) => {
 // Update product
 exports.updateProduct = async (req, res) => {
   const { id } = req.params;
-  const { name, category, supplier, price, quantity, minimum, maximum, avg_daily_sales, gst } = req.body;
-
-  if (!name || !category || !supplier || price === undefined || quantity === undefined || minimum === undefined || maximum === undefined || avg_daily_sales === undefined) {
-    return res.status(400).json({ message: 'All product fields are required' });
+  const validation = validateProductPayload(req.body);
+  if (!validation.valid) {
+    return res.status(400).json({ message: validation.message });
   }
 
   try {
@@ -75,30 +66,22 @@ exports.updateProduct = async (req, res) => {
        SET name = ?, category = ?, supplier = ?, price = ?, gst = ?, quantity = ?, minimum = ?, maximum = ?, avg_daily_sales = ? 
        WHERE id = ?`,
       [
-        name.trim(),
-        category,
-        supplier,
-        parseFloat(price),
-        Number.isFinite(Number(gst)) ? Number(gst) : 0,
-        parseInt(quantity),
-        parseInt(minimum),
-        parseInt(maximum),
-        parseFloat(avg_daily_sales),
+        validation.normalized.name,
+        validation.normalized.category,
+        validation.normalized.supplier,
+        validation.normalized.price,
+        validation.normalized.gst,
+        validation.normalized.quantity,
+        validation.normalized.minimum,
+        validation.normalized.maximum,
+        validation.normalized.avg_daily_sales,
         id
       ]
     );
 
     res.json({
-      id: parseInt(id),
-      name: name.trim(),
-      category,
-      supplier,
-      price: parseFloat(price),
-      gst: Number.isFinite(Number(gst)) ? Number(gst) : 0,
-      quantity: parseInt(quantity),
-      minimum: parseInt(minimum),
-      maximum: parseInt(maximum),
-      avg_daily_sales: parseFloat(avg_daily_sales)
+      id: parseInt(id, 10),
+      ...validation.normalized
     });
   } catch (err) {
     console.error('Error updating product:', err);

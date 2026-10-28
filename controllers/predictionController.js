@@ -1,4 +1,13 @@
 const db = require('../database/db');
+const {
+  evaluateRestockPriority,
+  getAverageDailySales,
+  calculateDemandWindows,
+  calculateSafetyStock,
+  calculateReorderPoint,
+  calculateRecommendedRestock,
+  classifyDemandVelocity
+} = require('../lib/inventoryLogic');
 
 /** Build a date filter compatible with both MySQL and SQLite. */
 function getLast30DaysFilter() {
@@ -26,55 +35,48 @@ exports.getPredictions = async (req, res) => {
       );
 
       const soldUnits = Math.max(0, Number.parseInt(salesRows[0]?.sold_units, 10) || 0);
-      const configuredDailySales = Math.max(0, Number.parseFloat(prod.avg_daily_sales) || 0);
-      const avgDailySales = soldUnits > 0 ? soldUnits / 30 : configuredDailySales;
-      const daysLeft = avgDailySales > 0 ? quantity / avgDailySales : 999;
-      const reorderLevel = Math.max(minimum, Math.ceil(avgDailySales * 7));
-      const suggestedQuantity = quantity <= reorderLevel ? Math.max(0, maximum - quantity) : 0;
-
-      let priority = 'Safe';
-      let recommendation = 'Stock Level Safe';
-      let priorityClass = 'safe';
-      let riskLevel = 'Low';
-
-      if (quantity === 0) {
-        priority = 'Out of Stock';
-        recommendation = 'Immediate Restock Required';
-        priorityClass = 'out';
-        riskLevel = 'Critical';
-      } else if (daysLeft <= 3) {
-        priority = 'Critical';
-        recommendation = 'Immediate Restock; critical level';
-        priorityClass = 'critical';
-        riskLevel = 'Critical';
-      } else if (daysLeft <= 7) {
-        priority = 'Low Stock';
-        recommendation = 'Reorder soon; stock depleting';
-        priorityClass = 'low';
-        riskLevel = 'High';
-      } else if (daysLeft <= 15) {
-        priority = 'Monitor';
-        recommendation = 'Monitor stock; regular replenishment';
-        priorityClass = 'monitor';
-        riskLevel = 'Medium';
-      }
+      const configuredAverageDailySales = Math.max(0, Number.parseFloat(prod.avg_daily_sales) || 0);
+      const avgDailySales = getAverageDailySales(soldUnits, configuredAverageDailySales, 30);
+      const daysLeft = avgDailySales > 0 ? quantity / avgDailySales : null;
+      const demandWindows = calculateDemandWindows({
+        recentSalesUnits: soldUnits,
+        configuredAverageDailySales
+      });
+      const leadTimeDays = Math.max(7, Math.ceil((minimum || 1) / Math.max(1, avgDailySales || 1)) || 7);
+      const safetyStock = calculateSafetyStock({ averageDailySales: avgDailySales, leadTimeDays, serviceLevelFactor: 1.5 });
+      const reorderPoint = calculateReorderPoint({ averageDailySales: avgDailySales, leadTimeDays, safetyStock });
+      const recommendedRestock = calculateRecommendedRestock({ quantity, reorderPoint, maxStock: maximum, minimumStock: minimum });
+      const stockAssessment = evaluateRestockPriority({
+        quantity,
+        minimum,
+        maximum,
+        recentSalesUnits: soldUnits,
+        configuredAverageDailySales,
+        salesWindowDays: 30
+      });
 
       return {
         id: prod.id,
         name: prod.name,
         quantity,
         avg_daily_sales: Number(avgDailySales.toFixed(2)),
-        days_left: daysLeft === 999 ? 'N/A' : Number(daysLeft.toFixed(2)),
-        suggested_quantity: suggestedQuantity,
-        reorder_level: reorderLevel,
-        risk_level: riskLevel,
+        days_left: daysLeft === null ? 'N/A' : Number(daysLeft.toFixed(2)),
+        suggested_quantity: stockAssessment.suggestedQuantity,
+        reorder_level: stockAssessment.reorderLevel,
+        risk_level: stockAssessment.riskLevel,
         data_source: soldUnits > 0 ? 'Last 30 days of sales' : 'Configured average sales',
-        explanation: daysLeft === 999
+        explanation: daysLeft === null
           ? 'No recent sales velocity is available; the configured average is used.'
           : `At the current sales velocity, stock is expected to last about ${Number(daysLeft.toFixed(1))} days.`,
-        priority,
-        recommendation,
-        priorityClass
+        priority: stockAssessment.priority,
+        recommendation: stockAssessment.recommendation,
+        priorityClass: stockAssessment.priorityClass,
+        demand_windows: demandWindows,
+        safety_stock: safetyStock,
+        reorder_point: reorderPoint,
+        recommended_restock_quantity: recommendedRestock,
+        demand_classification: classifyDemandVelocity(avgDailySales),
+        lead_time_days: leadTimeDays
       };
     }));
 

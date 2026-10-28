@@ -1,13 +1,9 @@
 const db = require('../database/db');
+const { calculateLineTotals, validateSaleRequest } = require('../lib/inventoryLogic');
 
 function generateInvoiceNumber() {
   const stamp = Date.now().toString();
   return `INV-${stamp.slice(-6)}-${Math.floor(100 + Math.random() * 900)}`;
-}
-
-function toNumber(value, fallback = 0) {
-  const parsed = Number(value);
-  return Number.isFinite(parsed) ? parsed : fallback;
 }
 
 function cleanText(value, maxLength = 100) {
@@ -16,42 +12,27 @@ function cleanText(value, maxLength = 100) {
 
 // Create a new sales transaction and immediately reduce inventory stock.
 exports.createSale = async (req, res) => {
+  const validation = validateSaleRequest(req.body);
+  if (!validation.valid) {
+    return res.status(400).json({ success: false, message: validation.message });
+  }
+
   const {
     items = [],
     customerName = '',
     customerPhone = '',
     paymentMethod = 'Cash',
     cashReceived = 0
-  } = req.body;
-
-  if (!Array.isArray(items) || items.length === 0) {
-    return res.status(400).json({ success: false, message: 'At least one product is required.' });
-  }
+  } = validation.normalized;
 
   try {
     const requestedItems = new Map();
-    const allowedPaymentMethods = new Set(['Cash', 'Card', 'UPI', 'Credit']);
-
-    if (!allowedPaymentMethods.has(paymentMethod)) {
-      return res.status(400).json({ success: false, message: 'Choose a valid payment method.' });
-    }
 
     for (const item of items) {
-      const productId = Number.parseInt(item.productId, 10);
-      const quantity = Number.parseInt(item.quantity, 10);
-      const discountPercent = toNumber(item.discountPercent);
-
-      if (!Number.isInteger(productId) || productId <= 0 || !Number.isInteger(quantity) || quantity <= 0) {
-        return res.status(400).json({ success: false, message: 'Each item needs a valid product and quantity.' });
-      }
-      if (discountPercent < 0 || discountPercent > 100) {
-        return res.status(400).json({ success: false, message: 'Discounts must be between 0 and 100 percent.' });
-      }
-
-      const existing = requestedItems.get(productId) || { quantity: 0, discountPercent };
-      existing.quantity += quantity;
-      existing.discountPercent = Math.max(existing.discountPercent, discountPercent);
-      requestedItems.set(productId, existing);
+      const existing = requestedItems.get(item.productId) || { quantity: 0, discountPercent: item.discountPercent };
+      existing.quantity += item.quantity;
+      existing.discountPercent = Math.max(existing.discountPercent, item.discountPercent);
+      requestedItems.set(item.productId, existing);
     }
 
     const normalizedItems = [];
@@ -79,16 +60,18 @@ exports.createSale = async (req, res) => {
         return res.status(409).json({ success: false, message: `Only ${availableStock} items available for ${product.name}.` });
       }
 
-      const unitPrice = toNumber(product.price);
-      const gstPercent = toNumber(product.gst);
-      const lineSubtotal = unitPrice * quantity;
-      const lineDiscount = lineSubtotal * (discountPercent / 100);
-      const discountedSubtotal = lineSubtotal - lineDiscount;
-      const lineGst = discountedSubtotal * (gstPercent / 100);
+      const unitPrice = Number(product.price) || 0;
+      const gstPercent = Number(product.gst) || 0;
+      const lineTotals = calculateLineTotals({
+        unitPrice,
+        quantity,
+        discountPercent,
+        gstPercent
+      });
 
-      subtotal += lineSubtotal;
-      discountTotal += lineDiscount;
-      gstTotal += lineGst;
+      subtotal += lineTotals.subtotal;
+      discountTotal += lineTotals.discountValue;
+      gstTotal += lineTotals.gstValue;
 
       normalizedItems.push({
         productId,
@@ -97,14 +80,14 @@ exports.createSale = async (req, res) => {
         unitPrice,
         discountPercent,
         gstPercent,
-        lineDiscount,
-        lineGst,
-        lineSubtotal: discountedSubtotal + lineGst
+        lineDiscount: lineTotals.discountValue,
+        lineGst: lineTotals.gstValue,
+        lineSubtotal: lineTotals.total
       });
     }
 
     const grandTotal = subtotal - discountTotal + gstTotal;
-    const receivedAmount = toNumber(cashReceived);
+    const receivedAmount = Number(cashReceived) || 0;
     const balance = receivedAmount - grandTotal;
     const invoiceRef = generateInvoiceNumber();
 
